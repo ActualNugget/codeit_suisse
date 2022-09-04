@@ -9,7 +9,7 @@ def to_cumulative_delayed(stream: list, quantity_block: int):
         df.append(row)
 
     # sort df by timestamp
-    df.sort(key= lambda i: i[0])
+    df = sorted(df, key = lambda x: (x[0], x[1]))
 
     # list stores the aggregated stream
     new_df = []
@@ -20,6 +20,9 @@ def to_cumulative_delayed(stream: list, quantity_block: int):
 
     # dict keeps track of at what quantity each ticker next fills a block
     c_qty_pop = defaultdict(lambda: quantity_block)
+
+    # bool to create the first row wherever the first block is filled
+    first_pop = True
 
     for row in df:
         timestamp = row[0]
@@ -38,7 +41,17 @@ def to_cumulative_delayed(stream: list, quantity_block: int):
             buffer_not = overflow * price
             block_not = c_not[ticker] - buffer_not
             # append new row to new_df
-            new_df.append([timestamp, ticker, c_qty_pop[ticker], round(block_not,1)])
+            if first_pop:
+                new_df.append([timestamp, ticker, c_qty_pop[ticker], round(block_not,1)])
+                first_pop = False
+            elif timestamp == new_df[-1][0]:
+                if ticker == new_df[-1][-3]:
+                    new_df[-1][-2] = c_qty_pop[ticker]
+                    new_df[-1][-1] = round(block_not,1)
+                else:
+                    new_df[-1].extend([ticker, c_qty_pop[ticker], round(block_not,1)])
+            else:
+                new_df.append([timestamp, ticker, c_qty_pop[ticker], round(block_not,1)])
             # increment c_qty_pop
             c_qty_pop[ticker] += quantity_block
 
@@ -48,3 +61,18 @@ def to_cumulative_delayed(stream: list, quantity_block: int):
         output.append(",".join([str(i) for i in row]))
 
     return output
+
+
+print(to_cumulative_delayed([
+    '00:03,C,6,5',
+    '00:05,C,5,4',
+    '00:05,A,1,1',
+    '00:00,A,1,2',
+    '00:02,A,1,3',
+    '00:03,A,1,4',
+    '00:04,A,1,5',
+    '00:06,A,7,5.6',
+    '00:05,B,25,5.6',
+    '00:06,A,7,5.6',
+    '00:06,A,7,5.6'
+], 5))
