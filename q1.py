@@ -28,13 +28,12 @@ def to_cumulative(stream: list):
         price = float(row[3])
         
         # if timestamp is different from previous timestamp
-        # then append [ticker, c_qty, c_not] for each element in tickers_here
-        # then clear tickers_here
-        # then add a new row
         if timestamp != new_df[-1][0]:
+            # append [ticker, c_qty, c_not] for each element in tickers_here, and clear it once done
             for tickers in sorted(tickers_here):
                 new_df[-1].extend([tickers, c_qty[tickers], round(c_not[tickers],1)])
             tickers_here.clear()
+            # add a new row
             new_df.append([timestamp])
         
         # update cumulatives
