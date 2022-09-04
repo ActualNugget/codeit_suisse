@@ -36,10 +36,10 @@ def to_cumulative_delayed(stream: list, quantity_block: int):
 
         # while quantity_block is filled
         while c_qty[ticker] >= c_qty_pop[ticker]:
-            # evaluate and exclude overflow notional
+            # evaluate and exclude any overflow notional
             overflow = c_qty[ticker] - c_qty_pop[ticker]
             buffer_not = overflow * price
-            block_not = c_not[ticker] - buffer_not
+            block_not = c_not[ticker] - buffer_not # this is valid because all overflow tickers should be the price given in current tick
             # append new row to new_df
             if first_pop:
                 new_df.append([timestamp, ticker, c_qty_pop[ticker], round(block_not,1)])
